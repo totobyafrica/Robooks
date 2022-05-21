@@ -59,17 +59,19 @@ int busyPin = A3;  // The pin number of the busy pin.
 sColor stateToConsider;
 /*
  * INT LOGIC
- * 0 - NEUTRAL
- * 1 - FORWARD
- * 2 - RIGHT
- * 3 - LEFT
- * 4 - BACK
- * >= 5 -> return to NEUTRAL
+ * 0 - NEUTRAL (UNDEFINED COLORS)
+ * 1 - FORWARD (RED)
+ * 2 - RIGHT (GREEN)
+ * 3 - LEFT (BLUE)
+ * 4 - BACK (YELLOW)
+ * 5 - RESET MEMORY (BLACK)
+ * 6 - WRITE TO MEMORY (WHITE)
+ * >= 8 -> return to NEUTRAL
  */
 bool commandAdded;
 int commandSeq[20];
 int const cSsize = sizeof(commandSeq)/sizeof(commandSeq[0]);
-int testArray[5];
+int testArray[4];
 int const tAsize = sizeof(testArray)/sizeof(testArray[0]);
 //color hp.
 struct RGB
@@ -91,6 +93,11 @@ int getCommand(sColor inputColor)
         return 3;
     case yellow: // move back
         return 4;
+    case black: // reset memory
+        return 5;
+    case white: // write to memory
+        return 6;
+
     default: //neutral - Color undefined
         return 0;
   }
