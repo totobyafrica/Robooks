@@ -1,3 +1,4 @@
+#include <WTV020SD16P.h>
 #include <SFE_ISL29125.h>
 #include <Wire.h>
 #include <SparkFun_TB6612.h>
@@ -48,7 +49,7 @@ int greenVal = 0;
 int blueVal = 0;
 
 //enum for color objects
-enum sColor {red, yellow, blue, green, undefined};
+enum sColor { white,black,red, yellow, blue, green, undefined };
 //AUDIO PLAYER
 int resetPin = A0;  // The pin number of the reset pin.
 int clockPin = A1;  // The pin number of the clock pin.
@@ -76,8 +77,14 @@ struct RGB
 };
 
   sColor spot_color(RGB scan_color)
-{
-  if ((scan_color.R >= 170) && (scan_color.G <= 40) && (scan_color.B <= 40))
+  {
+  if (scan_color.R >= 240 && scan_color.G >= 240 && scan_color.B >= 240) {
+   return white;
+  }
+  else if (scan_color.R <= 25 && scan_color.G <= 25 && scan_color.B <= 25) {
+   return black;
+  }
+  else if ((scan_color.R >= 170) && (scan_color.G <= 40) && (scan_color.B <= 40))
   {
     //wtv020sd16p.playVoice(XXXX);
     return red;
@@ -112,6 +119,7 @@ void setup() {
     {
       Serial.println("Sensor Initialization Successful\n\r");
     }
+    sColor stateToConsider = undefined;
  // wtv020sd16p.reset();
 }
 
@@ -148,7 +156,7 @@ void loop() {
   if ( (redVal > 0) && (greenVal > 0) && (blueVal > 0))
   {
     RGB ScanCol = {redVal, greenVal, blueVal };
-    spot_color
+    stateToConsider = spot_color(ScanCol);
   }
   
   // Delay for sensor to stabilize
