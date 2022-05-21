@@ -56,7 +56,7 @@ int clockPin = A1;  // The pin number of the clock pin.
 int dataPin = A2;  // The pin number of the data pin.
 int busyPin = A3;  // The pin number of the busy pin.
 //Wtv020sd16p wtv020sd16p(resetPin,clockPin,dataPin,busyPin); // ** FIX LIB ZIP FILE - inaccessible
-
+sColor stateToConsider;
 
 /*
  * INT LOGIC
@@ -119,7 +119,7 @@ void setup() {
     {
       Serial.println("Sensor Initialization Successful\n\r");
     }
-    sColor stateToConsider = undefined;
+    stateToConsider = undefined;
  // wtv020sd16p.reset();
 }
 
