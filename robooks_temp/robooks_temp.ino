@@ -73,6 +73,7 @@ int commandSeq[20];
 int const cSsize = sizeof(commandSeq)/sizeof(commandSeq[0]);
 int testArray[4];
 int const tAsize = sizeof(testArray)/sizeof(testArray[0]);
+int x_pntr; 
 //color hp.
 struct RGB
 {
@@ -97,7 +98,6 @@ int getCommand(sColor inputColor)
         return 5;
     case white: // write to memory
         return 6;
-
     default: //neutral - Color undefined
         return 0;
   }
@@ -146,6 +146,7 @@ void resetArray(int integerArray[] , int arraySize)
 
  
 void setup() {
+  x_pntr = 0;
   resetArray(testArray,tAsize);
   resetArray(commandSeq, cSsize);
   commandAdded = false;
@@ -196,7 +197,13 @@ void loop() {
   {
     RGB ScanCol = {redVal, greenVal, blueVal };
     stateToConsider = spot_color(ScanCol);
-    
+    testArray[x_pntr] = getCommand(stateToConsider);
+    x_pntr += 1;
+    redVal, greenVal, blueVal = 0;
+    if (x_pntr == tAsize - 1)
+    {
+      //check if all elements are equal
+    }
     commandAdded = true;
   }
   
