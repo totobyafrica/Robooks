@@ -1,3 +1,6 @@
 # Robooks
 Robooks .ino soure
-[alt text](https://www.mediafire.com/convkey/1457/jjxbcmp9b6k35uwzg.jpg?size_id=5)
+<p align="center">
+  <img src="https://www.mediafire.com/convkey/1457/jjxbcmp9b6k35uwzg.jpg?size_id=5" width="350" title="hover text">
+  <img src="https://www.mediafire.com/convkey/1457/jjxbcmp9b6k35uwzg.jpg?size_id=5" width="350" alt="accessibility text">
+</p>
