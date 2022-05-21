@@ -68,6 +68,9 @@ sColor stateToConsider;
  */
 bool commandAdded;
 int commandSeq[20];
+int const cSsize = sizeof(commandSeq)/sizeof(commandSeq[0]);
+int testArray[5];
+int const tAsize = sizeof(testArray)/sizeof(testArray[0]);
 //color hp.
 struct RGB
 {
@@ -126,7 +129,19 @@ sColor spot_color(RGB scan_color)
     return undefined;
   }
  }
+void resetArray(int integerArray[] , int arraySize)
+{
+    for (int x = 0; x < arraySize; x++)
+    {
+        integerArray[x] = 0;
+    }
+}
+
+ 
 void setup() {
+  resetArray(testArray,tAsize);
+  resetArray(commandSeq, cSsize);
+  commandAdded = false;
   // put your setup code here, to run once:
     Serial.begin(115200);
     pinMode(ledP, OUTPUT);
@@ -175,6 +190,7 @@ void loop() {
     RGB ScanCol = {redVal, greenVal, blueVal };
     stateToConsider = spot_color(ScanCol);
     
+    commandAdded = true;
   }
   
   // Delay for sensor to stabilize
