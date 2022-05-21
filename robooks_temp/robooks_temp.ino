@@ -57,7 +57,6 @@ int dataPin = A2;  // The pin number of the data pin.
 int busyPin = A3;  // The pin number of the busy pin.
 //Wtv020sd16p wtv020sd16p(resetPin,clockPin,dataPin,busyPin); // ** FIX LIB ZIP FILE - inaccessible
 sColor stateToConsider;
-
 /*
  * INT LOGIC
  * 0 - NEUTRAL
@@ -67,6 +66,7 @@ sColor stateToConsider;
  * 4 - BACK
  * >= 5 -> return to NEUTRAL
  */
+bool commandAdded;
 int commandSeq[20];
 //color hp.
 struct RGB
@@ -76,8 +76,25 @@ struct RGB
   int B;
 };
 
-  sColor spot_color(RGB scan_color)
+int getCommand(sColor inputColor)
+{
+  switch (inputColor)
   {
+    case red: // move forward
+        return 1;
+    case green: // turn left
+        return 2;
+    case blue: // move right
+        return 3;
+    case yellow: // move back
+        return 4;
+    default: //neutral - Color undefined
+        return 0;
+  }
+}
+
+sColor spot_color(RGB scan_color)
+ {
   if (scan_color.R >= 240 && scan_color.G >= 240 && scan_color.B >= 240) {
    return white;
   }
@@ -108,7 +125,7 @@ struct RGB
   {
     return undefined;
   }
-}
+ }
 void setup() {
   // put your setup code here, to run once:
     Serial.begin(115200);
@@ -157,6 +174,7 @@ void loop() {
   {
     RGB ScanCol = {redVal, greenVal, blueVal };
     stateToConsider = spot_color(ScanCol);
+    
   }
   
   // Delay for sensor to stabilize
