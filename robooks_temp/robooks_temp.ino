@@ -144,7 +144,7 @@ void resetArray(int integerArray[] , int arraySize)
         integerArray[x] = 0;
     }
 }
-bool check(const int array[], int n) // CHECK IF ALL ELEMENTS IN ARRAY ARE EQUAL - USED IN LOGIC CHECK FOR COMMAND TO MEMORY PIPELINE
+bool checkArr(const int array[], int n) // CHECK IF ALL ELEMENTS IN ARRAY ARE EQUAL - USED IN LOGIC CHECK FOR COMMAND TO MEMORY PIPELINE
 {   
     for (int i = 0; i < n - 1; i++)      
     {         
@@ -184,7 +184,7 @@ void setup() {
 
 void loop() {
   int pin_read = analogRead(buttonP);
-  if (pin_read > 0)
+  if (pin_read > 0) // BUTTON VOLTAGE --> FOR REAL TEST USE 700
   {
   Serial.print("Val: ");
   Serial.println(pin_read);
@@ -215,7 +215,7 @@ void loop() {
   if ( (redVal > 0) && (greenVal > 0) && (blueVal > 0))
   {
     RGB ScanCol = {redVal, greenVal, blueVal };
-    stateToConsider = spot_color(ScanCol);M
+    stateToConsider = spot_color(ScanCol);
     int commandToConsider = getCommand(stateToConsider);
         Serial.println(commandToConsider);
     if (stateToConsider != undefined && commandToConsider > 0 && x_pntr < tAsize)
@@ -229,12 +229,23 @@ void loop() {
     else if (x_pntr >= tAsize)
     {
       printArray(testArray, tAsize);
-        if(check(testArray,tAsize) == true)
+        if(checkArr(testArray,tAsize) != true)
         {
+          if(testArray[1] == 6)
+          {
+          Serial.print("STARTING MEMORY");
+          }
+          else if(testArray[1] == 5)
+          {
+          Serial.print("RESETTING MEMORY");
+          }
+          else
+          {
             Serial.print(" - ADDED COMMAND NO:");
             Serial.print(testArray[1]); 
             commandSeq[memoryPointer] = testArray[1];
             memoryPointer += 1;
+          }
         }
         resetArray(testArray, tAsize);
         x_pntr = 0;
