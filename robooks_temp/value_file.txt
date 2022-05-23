@@ -1,6 +1,3 @@
-Red: 675
-Green: 863
-Blue: 628
 
 LOWS:
 Red: 675
