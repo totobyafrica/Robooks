@@ -17,7 +17,7 @@ Currently the states are as follows:<br>
 <br>
 
 <b>ISL29125 Calibration</b><br>
-We are working with the following values
+We are working with the following values<br>
 LOWS:<br>
 Red: 675<br>
 Green: 863<br>
