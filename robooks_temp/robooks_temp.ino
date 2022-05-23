@@ -153,7 +153,17 @@ bool check(const int array[], int n) // CHECK IF ALL ELEMENTS IN ARRAY ARE EQUAL
     }
     return false;
 }
- 
+
+void printArray(int a[],int n)
+{
+  for(int i=0; i<n ;i++){
+      Serial.println("ELEMENT: ");
+      Serial.println(i);
+      Serial.println("E. VALUE: ");
+      Serial.println(a[i]);
+  }
+} 
+
 void setup() {
   x_pntr = 0;
   resetArray(testArray,tAsize);
@@ -205,17 +215,20 @@ void loop() {
   if ( (redVal > 0) && (greenVal > 0) && (blueVal > 0))
   {
     RGB ScanCol = {redVal, greenVal, blueVal };
-    stateToConsider = spot_color(ScanCol);
+    stateToConsider = spot_color(ScanCol);M
     int commandToConsider = getCommand(stateToConsider);
         Serial.println(commandToConsider);
-    if (stateToConsider != undefined && commandToConsider > 6 && x_pntr < tAsize)
+    if (stateToConsider != undefined && commandToConsider > 0 && x_pntr < tAsize)
     {
         testArray[x_pntr] = commandToConsider;
         x_pntr += 1;
+        Serial.println("x_pntr:");
+        Serial.print(x_pntr);
         Serial.println(testArray[x_pntr]);
     }
     else if (x_pntr >= tAsize)
     {
+      printArray(testArray, tAsize);
         if(check(testArray,tAsize) == true)
         {
             Serial.print(" - ADDED COMMAND NO:");
@@ -223,6 +236,7 @@ void loop() {
             commandSeq[memoryPointer] = testArray[1];
             memoryPointer += 1;
         }
+        resetArray(testArray, tAsize);
         x_pntr = 0;
     }
   }
