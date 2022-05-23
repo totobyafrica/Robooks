@@ -231,15 +231,17 @@ void loop() {
       printArray(testArray, tAsize);
         if(checkArr(testArray,tAsize) != true)
         {
-          if(testArray[1] == 6)
+          if(testArray[1] == 6) //scanned color WHITE & passed test array
           {
           Serial.print("STARTING MEMORY");
           }
-          else if(testArray[1] == 5)
+          else if(testArray[1] == 5) //scanned color BLACK & passed test array
           {
           Serial.print("RESETTING MEMORY");
+          resetArray(commandSeq, cSsize);
+          memoryPointer = 0;
           }
-          else
+          else  //scanned color OTHER THAN UNDEFINED & passed test array
           {
             Serial.print(" - ADDED COMMAND NO:");
             Serial.print(testArray[1]); 
@@ -256,6 +258,4 @@ void loop() {
   delay(2000);
   }
 digitalWrite(ledP, LOW);
-
-
 }
