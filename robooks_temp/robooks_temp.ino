@@ -37,12 +37,12 @@ int posB = 0;
 const int ledP = A7;
 // Declare sensor object
 SFE_ISL29125 RGB_sensor;
-unsigned int redlow = 590;
-unsigned int redhigh = 3865;
-unsigned int greenlow = 961;
-unsigned int greenhigh = 5181;
-unsigned int bluelow = 773;
-unsigned int bluehigh = 4109;
+unsigned int redlow = 675;
+unsigned int redhigh = 4230;
+unsigned int greenlow = 863;
+unsigned int greenhigh = 5123;
+unsigned int bluelow = 628;
+unsigned int bluehigh = 3389;
 // Declare RGB Values
 int redVal = 0;
 int greenVal = 0;
@@ -71,9 +71,10 @@ sColor stateToConsider;
 bool commandAdded;
 int commandSeq[20];
 int const cSsize = sizeof(commandSeq)/sizeof(commandSeq[0]);
-int testArray[4];
+int testArray[3];
 int const tAsize = sizeof(testArray)/sizeof(testArray[0]);
-int x_pntr; 
+int x_pntr; // test array pos pointer
+int memoryPointer; // command seq pointer
 //color hp.
 struct RGB
 {
@@ -143,7 +144,15 @@ void resetArray(int integerArray[] , int arraySize)
         integerArray[x] = 0;
     }
 }
-
+bool check(const int array[], int n) // CHECK IF ALL ELEMENTS IN ARRAY ARE EQUAL - USED IN LOGIC CHECK FOR COMMAND TO MEMORY PIPELINE
+{   
+    for (int i = 0; i < n - 1; i++)      
+    {         
+        if (array[i] != array[i + 1])
+            return true;
+    }
+    return false;
+}
  
 void setup() {
   x_pntr = 0;
@@ -165,7 +174,7 @@ void setup() {
 
 void loop() {
   int pin_read = analogRead(buttonP);
-  if (pin_read > 700)
+  if (pin_read > 0)
   {
   Serial.print("Val: ");
   Serial.println(pin_read);
@@ -197,22 +206,31 @@ void loop() {
   {
     RGB ScanCol = {redVal, greenVal, blueVal };
     stateToConsider = spot_color(ScanCol);
-    testArray[x_pntr] = getCommand(stateToConsider);
-    x_pntr += 1;
-    redVal, greenVal, blueVal = 0;
-    if (x_pntr == tAsize - 1)
+    int commandToConsider = getCommand(stateToConsider);
+        Serial.println(commandToConsider);
+    if (stateToConsider != undefined && commandToConsider > 6 && x_pntr < tAsize)
     {
-      //check if all elements are equal
+        testArray[x_pntr] = commandToConsider;
+        x_pntr += 1;
+        Serial.println(testArray[x_pntr]);
     }
-    commandAdded = true;
+    else if (x_pntr >= tAsize)
+    {
+        if(check(testArray,tAsize) == true)
+        {
+            Serial.print(" - ADDED COMMAND NO:");
+            Serial.print(testArray[1]); 
+            commandSeq[memoryPointer] = testArray[1];
+            memoryPointer += 1;
+        }
+        x_pntr = 0;
+    }
   }
   
   // Delay for sensor to stabilize
   delay(2000);
   }
 digitalWrite(ledP, LOW);
-
-  
 
 
 }
