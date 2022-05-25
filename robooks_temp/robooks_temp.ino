@@ -104,6 +104,27 @@ int getCommand(sColor inputColor)
   }
 }
 
+void runCommand(int CommandNum) // different to getCommand, used to run motor movements
+{
+        switch (CommandNum)
+        {
+        case red: // move forward
+              Serial.println("Forward");
+            break;
+        case green: // turn left
+              Serial.println("Left");
+            break;
+        case blue: // move right
+              Serial.println("Right");
+            break;
+        case yellow: // move back
+              Serial.println("Back");
+            break;
+        default: //neutral - Color undefined
+            break;
+        }
+}
+
 sColor spot_color(RGB scan_color)
  {
   if (scan_color.R >= 240 && scan_color.G >= 240 && scan_color.B >= 240) {
@@ -112,7 +133,7 @@ sColor spot_color(RGB scan_color)
   else if (scan_color.R <= 25 && scan_color.G <= 25 && scan_color.B <= 25) {
    return black;
   }
-  else if ((scan_color.R >= 170) && (scan_color.G <= 40) && (scan_color.B <= 40))
+  else if ((scan_color.R >= 170) && (scan_color.G <= 80) && (scan_color.B <= 80))
   {
     //wtv020sd16p.playVoice(XXXX);
     return red;
@@ -122,7 +143,7 @@ sColor spot_color(RGB scan_color)
     //wtv020sd16p.playVoice(XXXX);
     return yellow;
   }
-    else if ((scan_color.R <= 60) && (scan_color.G <= 40) && (scan_color.B >= 220))
+    else if ((scan_color.R <= 80) && (scan_color.G <= 80) && (scan_color.B >= 220))
   {
    // wtv020sd16p.playVoice(XXXX);
     return blue;
@@ -234,6 +255,16 @@ void loop() {
           if(testArray[1] == 6) //scanned color WHITE & passed test array
           {
           Serial.print("STARTING MEMORY");
+          for(int i=0; i<cSsize;i++)
+          {
+            if(commandSeq[i] != 0)
+            {
+            Serial.println("currently running seq ");
+            Serial.print(commandSeq[i]);
+            runCommand(commandSeq[i]);
+            }
+
+          }
           }
           else if(testArray[1] == 5) //scanned color BLACK & passed test array
           {
