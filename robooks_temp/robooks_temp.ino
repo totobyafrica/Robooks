@@ -133,15 +133,15 @@ sColor spot_color(RGB scan_color)
   else if (scan_color.R <= 25 && scan_color.G <= 25 && scan_color.B <= 25) {
    return black;
   }
+    else if ((scan_color.R >= 170) && (scan_color.G >= 170) && (scan_color.B <= 100))
+  {
+    //wtv020sd16p.playVoice(XXXX);
+    return yellow;
+  }
   else if ((scan_color.R >= 170) && (scan_color.G <= 80) && (scan_color.B <= 80))
   {
     //wtv020sd16p.playVoice(XXXX);
     return red;
-  }
-  else if ((scan_color.R >= 200) && (scan_color.G >= 200) && (scan_color.B <= 100))
-  {
-    //wtv020sd16p.playVoice(XXXX);
-    return yellow;
   }
     else if ((scan_color.R <= 80) && (scan_color.G <= 80) && (scan_color.B >= 220))
   {
@@ -205,7 +205,7 @@ void setup() {
 
 void loop() {
   int pin_read = analogRead(buttonP);
-  if (pin_read > 0) // BUTTON VOLTAGE --> FOR REAL TEST USE 700
+  if (pin_read > 700) // BUTTON VOLTAGE --> FOR REAL TEST USE 700
   {
   Serial.print("Val: ");
   Serial.println(pin_read);
