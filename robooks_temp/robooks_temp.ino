@@ -61,8 +61,8 @@ sColor stateToConsider;
  * INT LOGIC
  * 0 - NEUTRAL (UNDEFINED COLORS)
  * 1 - FORWARD (RED)
- * 2 - RIGHT (GREEN)
- * 3 - LEFT (BLUE)
+ * 2 - RIGHT (BLUE)
+ * 3 - LEFT (GREEN)
  * 4 - BACK (YELLOW)
  * 5 - RESET MEMORY (BLACK)
  * 6 - WRITE TO MEMORY (WHITE)
@@ -108,17 +108,17 @@ void runCommand(int CommandNum) // different to getCommand, used to run motor mo
 {
         switch (CommandNum)
         {
-        case red: // move forward
-              Serial.println("Forward");
+        case 1: // move forward
+              Serial.println("Forward - RED");
             break;
-        case green: // turn left
-              Serial.println("Left");
+        case 2: // turn left
+              Serial.println("Left - GREEN");
             break;
-        case blue: // move right
-              Serial.println("Right");
+        case 3: // move right
+              Serial.println("Right - BLUE");
             break;
-        case yellow: // move back
-              Serial.println("Back");
+        case 4: // move back
+              Serial.println("Back - YELLOW");
             break;
         default: //neutral - Color undefined
             break;
@@ -133,7 +133,7 @@ sColor spot_color(RGB scan_color)
   else if (scan_color.R <= 25 && scan_color.G <= 25 && scan_color.B <= 25) {
    return black;
   }
-    else if ((scan_color.R >= 170) && (scan_color.G >= 170) && (scan_color.B <= 100))
+    else if ((scan_color.R >= 170) && (scan_color.G >= 170) && (scan_color.B <= 140))
   {
     //wtv020sd16p.playVoice(XXXX);
     return yellow;
@@ -143,7 +143,7 @@ sColor spot_color(RGB scan_color)
     //wtv020sd16p.playVoice(XXXX);
     return red;
   }
-    else if ((scan_color.R <= 80) && (scan_color.G <= 80) && (scan_color.B >= 220))
+    else if ((scan_color.R <= 80) && (scan_color.G <= 150) && (scan_color.B >= 170))
   {
    // wtv020sd16p.playVoice(XXXX);
     return blue;
@@ -205,7 +205,7 @@ void setup() {
 
 void loop() {
   int pin_read = analogRead(buttonP);
-  if (pin_read > 700) // BUTTON VOLTAGE --> FOR REAL TEST USE 700
+  if (pin_read > 0) // BUTTON VOLTAGE --> FOR REAL TEST USE 700
   {
   Serial.print("Val: ");
   Serial.println(pin_read);
@@ -239,8 +239,13 @@ void loop() {
     stateToConsider = spot_color(ScanCol);
     int commandToConsider = getCommand(stateToConsider);
         Serial.println(commandToConsider);
-    if (stateToConsider != undefined && commandToConsider > 0 && x_pntr < tAsize)
+    if ((stateToConsider != undefined && commandToConsider > 0 && x_pntr < tAsize) || (testArray[0] != 0 && x_pntr < tAsize))
     {
+      if(testArray[0] != commandToConsider)
+      {
+        resetArray(testArray, tAsize);
+        x_pntr = 0;
+      }
         testArray[x_pntr] = commandToConsider;
         x_pntr += 1;
         Serial.println("x_pntr:");
