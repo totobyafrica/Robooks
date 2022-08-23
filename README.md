@@ -28,3 +28,10 @@ Red: 4230<br>
 Green: 5123<br>
 Blue: 3389<br>
 
+<b>Command Voice IDs</b><br>
+Each voice / sound file located in the SD card is ordered and stored in an encoded file in the AD4 format. These files are numbered and ordered from 0, with there being 11 files for each language (the currently supported languages are: Hungarian, Romanian, Slovak, English) with an average size of around 15kb.
+The voicelines are generated using standard TTS software.
+Below is a graphical representation of the system of storing the voicelines on the SD cards.
+<p align="center">
+  <img src="https://www.mediafire.com/convkey/c122/fu8jbq6ju75ju239g.jpg" width="525" alt="accessibility text">
+</p>
