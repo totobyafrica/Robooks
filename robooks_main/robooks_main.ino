@@ -1,0 +1,338 @@
+#include <WTV020SD16P.h>
+#include <SFE_ISL29125.h>
+#include <Wire.h>
+#include <SparkFun_TB6612.h>
+
+//button INPUT declaration
+const int buttonP = A7;
+const int buttonArray[] = {1,2,3};
+const int lowerRange[] = {};
+const int upperRange[] = {};
+int currentState;
+int lastState = LOW;
+
+// MOTOR UNIT
+const int EncoderUnit = 58; // 58 E.U. ->> 1 cm
+
+#define AIN1 9
+#define BIN1 8
+#define AIN2 10
+#define BIN2 7
+#define PWMA 11
+#define PWMB 6
+#define STBY 12
+
+// these constants are used to allow you to make your motor configuration 
+// line up with function names like forward.  Value can be 1 or -1
+const int offsetA = -1;
+const int offsetB = 1;
+
+// Initializing motors.  The library will allow you to initialize as many
+// motors as you have memory for.  If you are using functions like forward
+// that take 2 motors as arguements you can either write new functions or
+// call the function more than once.
+Motor motor1 = Motor(AIN1, AIN2, PWMA, offsetA, STBY);
+Motor motor2 = Motor(BIN1, BIN2, PWMB, offsetB, STBY);
+
+
+//LED dec
+const int ledP = 13;
+// Declare sensor object
+SFE_ISL29125 RGB_sensor;
+unsigned int redlow = 675;
+unsigned int redhigh = 4230;
+unsigned int greenlow = 863;
+unsigned int greenhigh = 5123;
+unsigned int bluelow = 628;
+unsigned int bluehigh = 3389;
+// Declare RGB Values
+int redVal = 0;
+int greenVal = 0;
+int blueVal = 0;
+
+//enum for color objects
+enum sColor { white,black,red, yellow, blue, green, undefined };
+//AUDIO PLAYER
+int resetPin = A0;  // The pin number of the reset pin.
+int clockPin = A1;  // The pin number of the clock pin.
+int dataPin = A2;  // The pin number of the data pin.
+int busyPin = A3;  // The pin number of the busy pin.
+WTV020SD16P wtv020sd16p(resetPin,clockPin,dataPin,busyPin);
+sColor stateToConsider;
+/*
+ * INT LOGIC
+ * 0 - NEUTRAL (UNDEFINED COLORS)
+ * 1 - FORWARD (RED)
+ * 2 - RIGHT (BLUE)
+ * 3 - LEFT (GREEN)
+ * 4 - BACK (YELLOW)
+ * 5 - RESET MEMORY (BLACK)
+ * 6 - WRITE TO MEMORY (WHITE)
+ * >= 8 -> return to NEUTRAL
+ */
+bool commandAdded;
+int commandSeq[20];
+int const cSsize = sizeof(commandSeq)/sizeof(commandSeq[0]);
+int testArray[3];
+int const tAsize = sizeof(testArray)/sizeof(testArray[0]);
+int x_pntr; // test array pos pointer
+int memoryPointer; // command seq pointer
+//color hp.
+struct RGB
+{
+  int R;
+  int G;
+  int B;
+};
+
+int getCommand(sColor inputColor)
+{
+  switch (inputColor)
+  {
+    case red: // move forward
+        wtv020sd16p.playVoice(1);
+        return 1;
+    case green: // turn left
+        wtv020sd16p.playVoice(2);
+        return 2;
+    case blue: // move right
+        wtv020sd16p.playVoice(3);
+        return 3;
+    case yellow: // move back
+        wtv020sd16p.playVoice(0);
+        return 4;
+    case black: // reset memory
+        return 5;
+    case white: // write to memory
+        wtv020sd16p.playVoice(4);
+        return 6;
+    default: //neutral - Color undefined
+        return 0;
+  }
+}
+
+void runCommand(int CommandNum) // different to getCommand, used to run motor movements
+{
+        switch (CommandNum)
+        {
+        case 1: // move forward
+              Serial.println("Forward - RED");
+              forward(motor1, motor2, 150);
+              delay(700);
+              brake(motor1, motor2);
+            break;
+        case 2: // turn left
+              Serial.println("Left - GREEN");
+              left(motor1, motor2, 150);
+              delay(880);
+              brake(motor1, motor2);
+            break;
+        case 3: // move right
+              Serial.println("Right - BLUE");
+              right(motor1, motor2, 150);
+              delay(880);
+              brake(motor1, motor2);
+            break;
+        case 4: // move back
+              Serial.println("Back - YELLOW");
+              back(motor1, motor2, 150);
+              delay(700);
+              brake(motor1, motor2);
+            break;
+        default: //neutral - Color undefined
+            break;
+        }
+}
+
+sColor spot_color(RGB scan_color)
+ {
+  if (scan_color.R >= 240 && scan_color.G >= 240 && scan_color.B >= 240) {
+   wtv020sd16p.playVoice(9);
+   return white;
+  }
+  else if (scan_color.R <= 25 && scan_color.G <= 25 && scan_color.B <= 25) {
+   wtv020sd16p.playVoice(10);
+   return black;
+  }
+    else if ((scan_color.R >= 170) && (scan_color.G >= 170) && (scan_color.B <= 140))
+  {
+    wtv020sd16p.playVoice(8);
+    return yellow;
+  }
+  else if ((scan_color.R >= 100) && (scan_color.G <= 80) && (scan_color.B <= 80))
+  {
+    wtv020sd16p.playVoice(5);
+    return red;
+  }
+    else if ((scan_color.R <= 80) && (scan_color.G <= 80) && (scan_color.B >= 80))
+  {
+   wtv020sd16p.playVoice(7);
+    return blue;
+  }
+    else if ((scan_color.R <= 50) && (scan_color.G >= 30) && (scan_color.B >= 50))
+  {
+    wtv020sd16p.playVoice(6);
+    return green;
+  }
+    else
+  {
+    return undefined;
+  }
+ }
+void resetArray(int integerArray[] , int arraySize)
+{
+    for (int x = 0; x < arraySize; x++)
+    {
+        integerArray[x] = 0;
+    }
+}
+
+void blinkLED(int LedPin, int NumBlinks)
+{
+  int Blinks = 0;
+  while (Blinks < NumBlinks)
+  {
+    digitalWrite(LedPin, HIGH);   // turn the LED on (HIGH is the voltage level)
+    delay(250);                       // wait for a second
+    digitalWrite(LedPin, LOW);    // turn the LED off by making the voltage LOW
+    delay(250); 
+    Blinks++;
+  }
+  digitalWrite(LedPin, HIGH); 
+
+}
+
+bool checkArr(const int array[], int n) // CHECK IF ALL ELEMENTS IN ARRAY ARE EQUAL - USED IN LOGIC CHECK FOR COMMAND TO MEMORY PIPELINE
+{   
+    for (int i = 0; i < n - 1; i++)      
+    {         
+        if (array[i] != array[i + 1])
+            return true;
+    }
+    return false;
+}
+
+void printArray(int a[],int n)
+{
+  for(int i=0; i<n ;i++){
+      Serial.println("ELEMENT: ");
+      Serial.println(i);
+      Serial.println("E. VALUE: ");
+      Serial.println(a[i]);
+  }
+} 
+
+void setup() {
+  x_pntr = 0;
+  resetArray(testArray,tAsize);
+  resetArray(commandSeq, cSsize);
+  commandAdded = false;
+  // put your setup code here, to run once:
+    Serial.begin(115200);
+    pinMode(ledP, OUTPUT);
+    pinMode(buttonP, INPUT);
+    // Initialize the ISL29125 with simple configuration so it starts sampling
+    if (RGB_sensor.init())
+    {
+      Serial.println("Sensor Initialization Successful\n\r");
+    }
+    stateToConsider = undefined;
+ // wtv020sd16p.reset();
+}
+
+void loop() {
+  int pin_read = analogRead(buttonP);
+  if (pin_read >= 350 ) // BUTTON VOLTAGE --> FOR REAL TEST USE 350
+  //if (red > 20 || green > 20 || blue > 20)
+  {
+  Serial.print("Val: ");
+  Serial.println(pin_read);
+
+
+  digitalWrite(ledP, HIGH);
+  // Read sensor values (16 bit integers)
+  unsigned int red = RGB_sensor.readRed();
+  unsigned int green = RGB_sensor.readGreen();
+  unsigned int blue = RGB_sensor.readBlue();
+  
+  // Convert to RGB values
+  int redV = map(red, redlow, redhigh, 0, 255);
+  int greenV = map(green, greenlow, greenhigh, 0, 255);
+  int blueV = map(blue, bluelow, bluehigh, 0, 255);
+  
+  // Constrain to values of 0-255
+  redVal = constrain(redV, 0, 255);
+  greenVal = constrain(greenV, 0, 255);
+  blueVal = constrain(blueV, 0, 255);
+     
+  Serial.print("Red: "); 
+  Serial.print(redVal);
+  Serial.print(" - Green: ");
+  Serial.print(greenVal);
+  Serial.print(" - Blue: "); 
+  Serial.println(blueVal);
+  if ( (redVal >= 0) && (greenVal >= 0) && (blueVal >= 0))
+  {
+    RGB ScanCol = {redVal, greenVal, blueVal };
+    stateToConsider = spot_color(ScanCol);
+    int commandToConsider = getCommand(stateToConsider);
+        Serial.println(commandToConsider);
+    if ((stateToConsider != undefined && commandToConsider > 0 && x_pntr < tAsize) || (testArray[0] != 0 && x_pntr < tAsize))
+    {
+      if(testArray[0] != commandToConsider)
+      {
+        resetArray(testArray, tAsize);
+        x_pntr = 0;
+      }
+        testArray[x_pntr] = commandToConsider;
+        x_pntr += 1;
+        Serial.println("x_pntr:");
+        Serial.print(x_pntr);
+        Serial.println(testArray[x_pntr]);
+    }
+    else if (x_pntr >= tAsize)
+    {
+      printArray(testArray, tAsize);
+        if(checkArr(testArray,tAsize) != true)
+        {
+          if(testArray[1] == 6) //scanned color WHITE & passed test array
+          {
+          blinkLED(ledP,5);  
+          Serial.print("STARTING MEMORY");
+          for(int i=0; i<cSsize;i++)
+          {
+            if(commandSeq[i] != 0)
+            {
+            Serial.println("currently running seq ");
+            Serial.print(commandSeq[i]);
+            runCommand(commandSeq[i]);
+            }
+
+          }
+          }
+          else if(testArray[1] == 5) //scanned color BLACK & passed test array
+          {
+          blinkLED(ledP,4);
+          Serial.print("RESETTING MEMORY");
+          resetArray(commandSeq, cSsize);
+          memoryPointer = 0;
+          }
+          else  //scanned color OTHER THAN UNDEFINED & passed test array
+          {
+            blinkLED(ledP,2);
+            Serial.print(" - ADDED COMMAND NO:");
+            Serial.print(testArray[1]); 
+            commandSeq[memoryPointer] = testArray[1];
+            memoryPointer += 1;
+          }
+        }
+        resetArray(testArray, tAsize);
+        x_pntr = 0;
+    }
+  }
+  
+  // Delay for sensor to stabilize
+  delay(2000);
+  }
+digitalWrite(ledP, LOW);
+}
