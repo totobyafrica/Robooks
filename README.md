@@ -33,5 +33,5 @@ Each voice / sound file located in the SD card is ordered and stored in an encod
 The voicelines are generated using standard TTS software.
 Below is a graphical representation of the system of storing the voicelines on the SD cards.
 <p align="center">
-  <img src="https://www.mediafire.com/convkey/c122/fu8jbq6ju75ju239g.jpg" width="525" alt="accessibility text">
+  <img src="https://www.mediafire.com/convkey/8b11/fu8jbq6ju75ju239g.jpg" width="525" alt="accessibility text">
 </p>
