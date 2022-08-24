@@ -2,19 +2,15 @@
 #include <SFE_ISL29125.h>
 #include <Wire.h>
 #include <SparkFun_TB6612.h>
-
-
-
-
+  
 // LANG VARIABLE HERE
-
-
-
-
-
-
-
-
+const int langSet = 11;
+int langCase = 0;
+const int langCeil = 3;
+unsigned int langToPlay = 0;
+// This value (langCase) is capped at 3, due to there
+// being 4 languages (that is: Hungarian, Romanian, Slovakian, English)
+// ordered in that order 0-HU 1-RO 2-SK 3-EN
 
 
 
@@ -90,7 +86,7 @@ sColor stateToConsider;
  */
 bool commandAdded;
 int commandSeq[20];
-int const cSsize = sizeof(commandSeq)/sizeof(commandSeq[0]);
+int const cSsize = sizeof(commandSeq)/sizeof(int);
 int testArray[3];
 int const tAsize = sizeof(testArray)/sizeof(testArray[0]);
 int x_pntr; // test array pos pointer
@@ -129,30 +125,34 @@ void runCommand(int CommandNum) // different to getCommand, used to run motor mo
         switch (CommandNum)
         {
         case 1: // move forward
-              wtv020sd16p.playVoice(1);
+              langToPlay = (1+(11*langCase));
+              wtv020sd16p.playVoice(langToPlay);
               Serial.println("Forward - RED");
-              forward(motor1, motor2, 150);
+              forward(motor1, motor2, 100);
               delay(800);
               brake(motor1, motor2);
             break;
         case 2: // turn left
-              wtv020sd16p.playVoice(2);
+              langToPlay = (2+(11*langCase));
+              wtv020sd16p.playVoice(langToPlay);
               Serial.println("Left - GREEN");
               left(motor1, motor2, 150);
               delay(1100);
               brake(motor1, motor2);
             break;
         case 3: // move right
-              wtv020sd16p.playVoice(3);
+              langToPlay = (3+(11*langCase));
+              wtv020sd16p.playVoice(langToPlay);
               Serial.println("Right - BLUE");
               right(motor1, motor2, 150);
-              delay(880);
+              delay(1100);
               brake(motor1, motor2);
             break;
         case 4: // move back
-              wtv020sd16p.playVoice(0);
+              langToPlay = (0+(11*langCase));
+              wtv020sd16p.playVoice(langToPlay);
               Serial.println("Back - YELLOW");
-              back(motor1, motor2, 150);
+              back(motor1, motor2, 100);
               delay(800);
               brake(motor1, motor2);
             break;
@@ -252,12 +252,30 @@ void setup() {
       Serial.println("Sensor Initialization Successful\n\r");
     }
     stateToConsider = undefined;
- // wtv020sd16p.reset();
+    wtv020sd16p.reset();
 }
 
 void loop() {
   int pin_read = analogRead(buttonP);
-  if (pin_read >= 350 ) // BUTTON VOLTAGE --> FOR REAL TEST USE 350
+  if (pin_read >= 845 && pin_read <= 870 )
+   {
+   // Alternative modulo
+   // langCase = (langCase + 1) % 4;
+   langCase++;
+   if (langCase > langCeil){
+    langCase = 0;
+   }
+   Serial.print("Val: ");
+   Serial.println(pin_read);
+   Serial.print("Lang Change to: ");
+   Serial.println(langCase);
+   langToPlay = (4+(11*langCase));
+   wtv020sd16p.playVoice(langToPlay);
+   Serial.println(langCase);
+   blinkLED(ledP,2);
+   delay(1000);
+  }
+ else if (pin_read >= 350 ) // BUTTON VOLTAGE --> FOR REAL TEST USE 350
   //if (red > 20 || green > 20 || blue > 20)
   {
   Serial.print("Val: ");
@@ -313,13 +331,15 @@ void loop() {
           if(testArray[1] == 6) //scanned color WHITE & passed test array
           {
           blinkLED(ledP,5);  
-          wtv020sd16p.playVoice(4);
+          langToPlay = (9+(11*langCase));
+          wtv020sd16p.playVoice(langToPlay);
           delay(1000);
           Serial.print("STARTING MEMORY");
           for(int i=0; i<cSsize;i++)
           {
             if(commandSeq[i] != 0)
             {
+            delay(250);
             Serial.println("currently running seq ");
             Serial.print(commandSeq[i]);
             runCommand(commandSeq[i]);
@@ -330,6 +350,8 @@ void loop() {
           else if(testArray[1] == 5) //scanned color BLACK & passed test array
           {
           blinkLED(ledP,4);
+          langToPlay = (10+(11*langCase));
+          wtv020sd16p.playVoice(langToPlay);
           Serial.print("RESETTING MEMORY");
           resetArray(commandSeq, cSsize);
           memoryPointer = 0;
@@ -337,6 +359,27 @@ void loop() {
           else  //scanned color OTHER THAN UNDEFINED & passed test array
           {
             blinkLED(ledP,2);
+            switch (testArray[1])
+            {
+            case 1:
+              langToPlay = (5+(11*langCase));
+              wtv020sd16p.playVoice(langToPlay);
+              break;
+            case 2:
+              langToPlay = (6+(11*langCase));
+              wtv020sd16p.playVoice(langToPlay);
+              break;
+            case 3:
+              langToPlay = (7+(11*langCase));
+              wtv020sd16p.playVoice(langToPlay);
+              break;
+            case 4:
+              langToPlay = (8+(11*langCase));
+              wtv020sd16p.playVoice(langToPlay);
+              break;
+           default: //neutral - Color undefined
+              break;
+            }
             Serial.print(" - ADDED COMMAND NO:");
             Serial.print(testArray[1]); 
             commandSeq[memoryPointer] = testArray[1];
