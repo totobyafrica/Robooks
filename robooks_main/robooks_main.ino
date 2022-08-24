@@ -3,6 +3,21 @@
 #include <Wire.h>
 #include <SparkFun_TB6612.h>
 
+
+
+
+// LANG VARIABLE HERE
+
+
+
+
+
+
+
+
+
+
+
 //button INPUT declaration
 const int buttonP = A7;
 const int buttonArray[] = {1,2,3};
@@ -34,6 +49,14 @@ const int offsetB = 1;
 Motor motor1 = Motor(AIN1, AIN2, PWMA, offsetA, STBY);
 Motor motor2 = Motor(BIN1, BIN2, PWMB, offsetB, STBY);
 
+//Speaker / Sound Unit
+int resetPin = A0;  // The pin number of the reset pin.
+int clockPin = A1;  // The pin number of the clock pin.
+int dataPin = A2;  // The pin number of the data pin.
+int busyPin = A3;  // The pin number of the busy pin.
+WTV020SD16P wtv020sd16p(resetPin,clockPin,dataPin,busyPin);
+
+
 
 //LED dec
 const int ledP = 13;
@@ -52,12 +75,7 @@ int blueVal = 0;
 
 //enum for color objects
 enum sColor { white,black,red, yellow, blue, green, undefined };
-//AUDIO PLAYER
-int resetPin = A0;  // The pin number of the reset pin.
-int clockPin = A1;  // The pin number of the clock pin.
-int dataPin = A2;  // The pin number of the data pin.
-int busyPin = A3;  // The pin number of the busy pin.
-WTV020SD16P wtv020sd16p(resetPin,clockPin,dataPin,busyPin);
+
 sColor stateToConsider;
 /*
  * INT LOGIC
@@ -90,21 +108,16 @@ int getCommand(sColor inputColor)
   switch (inputColor)
   {
     case red: // move forward
-        wtv020sd16p.playVoice(1);
         return 1;
     case green: // turn left
-        wtv020sd16p.playVoice(2);
         return 2;
     case blue: // move right
-        wtv020sd16p.playVoice(3);
         return 3;
     case yellow: // move back
-        wtv020sd16p.playVoice(0);
         return 4;
     case black: // reset memory
         return 5;
     case white: // write to memory
-        wtv020sd16p.playVoice(4);
         return 6;
     default: //neutral - Color undefined
         return 0;
@@ -116,27 +129,31 @@ void runCommand(int CommandNum) // different to getCommand, used to run motor mo
         switch (CommandNum)
         {
         case 1: // move forward
+              wtv020sd16p.playVoice(1);
               Serial.println("Forward - RED");
               forward(motor1, motor2, 150);
-              delay(700);
+              delay(800);
               brake(motor1, motor2);
             break;
         case 2: // turn left
+              wtv020sd16p.playVoice(2);
               Serial.println("Left - GREEN");
               left(motor1, motor2, 150);
-              delay(880);
+              delay(1100);
               brake(motor1, motor2);
             break;
         case 3: // move right
+              wtv020sd16p.playVoice(3);
               Serial.println("Right - BLUE");
               right(motor1, motor2, 150);
               delay(880);
               brake(motor1, motor2);
             break;
         case 4: // move back
+              wtv020sd16p.playVoice(0);
               Serial.println("Back - YELLOW");
               back(motor1, motor2, 150);
-              delay(700);
+              delay(800);
               brake(motor1, motor2);
             break;
         default: //neutral - Color undefined
@@ -147,33 +164,31 @@ void runCommand(int CommandNum) // different to getCommand, used to run motor mo
 sColor spot_color(RGB scan_color)
  {
   if (scan_color.R >= 240 && scan_color.G >= 240 && scan_color.B >= 240) {
-   wtv020sd16p.playVoice(9);
    return white;
   }
   else if (scan_color.R <= 25 && scan_color.G <= 25 && scan_color.B <= 25) {
-   wtv020sd16p.playVoice(10);
    return black;
   }
     else if ((scan_color.R >= 170) && (scan_color.G >= 170) && (scan_color.B <= 140))
   {
-    wtv020sd16p.playVoice(8);
+    //wtv020sd16p.playVoice(XXXX);
     return yellow;
   }
   else if ((scan_color.R >= 100) && (scan_color.G <= 80) && (scan_color.B <= 80))
   {
-    wtv020sd16p.playVoice(5);
+    //wtv020sd16p.playVoice(XXXX);
     return red;
   }
     else if ((scan_color.R <= 80) && (scan_color.G <= 80) && (scan_color.B >= 80))
   {
-   wtv020sd16p.playVoice(7);
+   // wtv020sd16p.playVoice(XXXX);
     return blue;
   }
-    else if ((scan_color.R <= 50) && (scan_color.G >= 30) && (scan_color.B >= 50))
+    else if ((scan_color.R <= 50) && (scan_color.G >= 30) && (scan_color.B >= 31))
   {
-    wtv020sd16p.playVoice(6);
     return green;
   }
+  //wtv020sd16p.playVoice(XXXX);
     else
   {
     return undefined;
@@ -298,6 +313,8 @@ void loop() {
           if(testArray[1] == 6) //scanned color WHITE & passed test array
           {
           blinkLED(ledP,5);  
+          wtv020sd16p.playVoice(4);
+          delay(1000);
           Serial.print("STARTING MEMORY");
           for(int i=0; i<cSsize;i++)
           {
@@ -332,7 +349,7 @@ void loop() {
   }
   
   // Delay for sensor to stabilize
-  delay(2000);
+  delay(1000);
   }
 digitalWrite(ledP, LOW);
 }
