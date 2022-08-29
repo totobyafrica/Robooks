@@ -129,23 +129,31 @@ void runCommand(int CommandNum) // different to getCommand, used to run motor mo
               wtv020sd16p.playVoice(langToPlay);
               Serial.println("Forward - RED");
               forward(motor1, motor2, 100);
-              delay(800);
+              delay(1250);
               brake(motor1, motor2);
             break;
         case 2: // turn left
               langToPlay = (2+(11*langCase));
               wtv020sd16p.playVoice(langToPlay);
               Serial.println("Left - GREEN");
+              forward(motor1, motor2, 100);
+              delay(1250);
+              brake(motor1, motor2);
+              delay(100);
               left(motor1, motor2, 150);
-              delay(1100);
+              delay(780);
               brake(motor1, motor2);
             break;
         case 3: // move right
               langToPlay = (3+(11*langCase));
               wtv020sd16p.playVoice(langToPlay);
               Serial.println("Right - BLUE");
+              forward(motor1, motor2, 100);
+              delay(1250);
+              brake(motor1, motor2);
+              delay(100);
               right(motor1, motor2, 150);
-              delay(1100);
+              delay(780);
               brake(motor1, motor2);
             break;
         case 4: // move back
@@ -153,7 +161,7 @@ void runCommand(int CommandNum) // different to getCommand, used to run motor mo
               wtv020sd16p.playVoice(langToPlay);
               Serial.println("Back - YELLOW");
               back(motor1, motor2, 100);
-              delay(800);
+              delay(1250);
               brake(motor1, motor2);
             break;
         default: //neutral - Color undefined
@@ -392,7 +400,7 @@ void loop() {
   }
   
   // Delay for sensor to stabilize
-  delay(1000);
+  delay(670);
   }
 digitalWrite(ledP, LOW);
 }
