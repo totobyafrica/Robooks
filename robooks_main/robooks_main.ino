@@ -351,6 +351,7 @@ void loop() {
             Serial.println("currently running seq ");
             Serial.print(commandSeq[i]);
             runCommand(commandSeq[i]);
+            delay(250);
             }
 
           }
