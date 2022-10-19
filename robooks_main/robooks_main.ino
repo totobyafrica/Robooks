@@ -265,7 +265,7 @@ void setup() {
 
 void loop() {
   int pin_read = analogRead(buttonP);
-  if (pin_read >= 845 && pin_read <= 870 )
+  if (pin_read >= 845 && pin_read <= 870 && commandSeq[0] == 0 && commandSeq[1] == 0)
    {
    // Alternative modulo
    // langCase = (langCase + 1) % 4;
