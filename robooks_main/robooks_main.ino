@@ -1,8 +1,11 @@
-#include <WTV020SD16P.h>
 #include <SFE_ISL29125.h>
 #include <Wire.h>
 #include <SparkFun_TB6612.h>
   
+
+unsigned long insertion; //time variable
+
+
 // LANG VARIABLE HERE
 const int langSet = 11;
 int langCase = 0;
@@ -50,7 +53,6 @@ int resetPin = A0;  // The pin number of the reset pin.
 int clockPin = A1;  // The pin number of the clock pin.
 int dataPin = A2;  // The pin number of the data pin.
 int busyPin = A3;  // The pin number of the busy pin.
-WTV020SD16P wtv020sd16p(resetPin,clockPin,dataPin,busyPin);
 
 
 
@@ -126,34 +128,38 @@ void runCommand(int CommandNum) // different to getCommand, used to run motor mo
         {
         case 1: // move forward
               langToPlay = (1+(11*langCase));
-              wtv020sd16p.playVoice(langToPlay);
               Serial.println("Forward - RED");
-              forward(motor1, motor2, 100);
-              delay(800);
+              insertion = millis();
+              SpeedControl(900,insertion,true);
               brake(motor1, motor2);
             break;
         case 2: // turn left
               langToPlay = (2+(11*langCase));
-              wtv020sd16p.playVoice(langToPlay);
               Serial.println("Left - GREEN");
+              forward(motor1, motor2, 100);
+              delay(1250);
+              brake(motor1, motor2);
+              delay(100);
               left(motor1, motor2, 150);
-              delay(1100);
+              delay(780);
               brake(motor1, motor2);
             break;
         case 3: // move right
               langToPlay = (3+(11*langCase));
-              wtv020sd16p.playVoice(langToPlay);
               Serial.println("Right - BLUE");
+              forward(motor1, motor2, 100);
+              delay(1250);
+              brake(motor1, motor2);
+              delay(100);
               right(motor1, motor2, 150);
-              delay(1100);
+              delay(780);
               brake(motor1, motor2);
             break;
         case 4: // move back
               langToPlay = (0+(11*langCase));
-              wtv020sd16p.playVoice(langToPlay);
               Serial.println("Back - YELLOW");
-              back(motor1, motor2, 100);
-              delay(800);
+              insertion = millis();
+              SpeedControl(900,insertion,false);
               brake(motor1, motor2);
             break;
         default: //neutral - Color undefined
@@ -171,24 +177,20 @@ sColor spot_color(RGB scan_color)
   }
     else if ((scan_color.R >= 170) && (scan_color.G >= 170) && (scan_color.B <= 140))
   {
-    //wtv020sd16p.playVoice(XXXX);
     return yellow;
   }
   else if ((scan_color.R >= 100) && (scan_color.G <= 80) && (scan_color.B <= 80))
   {
-    //wtv020sd16p.playVoice(XXXX);
     return red;
   }
     else if ((scan_color.R <= 80) && (scan_color.G <= 80) && (scan_color.B >= 80))
   {
-   // wtv020sd16p.playVoice(XXXX);
     return blue;
   }
     else if ((scan_color.R <= 50) && (scan_color.G >= 30) && (scan_color.B >= 31))
   {
     return green;
   }
-  //wtv020sd16p.playVoice(XXXX);
     else
   {
     return undefined;
@@ -215,6 +217,39 @@ void blinkLED(int LedPin, int NumBlinks)
   }
   digitalWrite(LedPin, HIGH); 
 
+}
+/// InsertionTime is the time at which the function is called - call millis beforehand and start
+void SpeedControl(int duration, unsigned long InsertionTime, bool forwardMove )
+{
+  int CurrSpeed = 70;
+  int adder = 1;
+  int slower = -1;
+  int upperCeil = 170;
+  int lowerCeil = 70;
+  if (!forwardMove)
+  {
+    CurrSpeed = -70;
+    adder = -1;
+    slower = 1;
+    lowerCeil = -70;
+    upperCeil = -170;
+  }
+  unsigned long CatchTime = millis();
+  while ((CatchTime - InsertionTime) <= duration/2)
+    {
+      CurrSpeed = CurrSpeed + 1;
+      CurrSpeed = constrain(CurrSpeed, lowerCeil, upperCeil);
+      CatchTime = millis();
+      forward(motor1, motor2,CurrSpeed);
+    }
+  while ((CatchTime - InsertionTime) <= duration)
+  {
+      CurrSpeed = CurrSpeed - 1;
+      CurrSpeed = constrain(CurrSpeed, lowerCeil, upperCeil);
+      CatchTime = millis();
+      forward(motor1, motor2,CurrSpeed);
+  }
+  brake(motor1, motor2);
 }
 
 bool checkArr(const int array[], int n) // CHECK IF ALL ELEMENTS IN ARRAY ARE EQUAL - USED IN LOGIC CHECK FOR COMMAND TO MEMORY PIPELINE
@@ -252,12 +287,11 @@ void setup() {
       Serial.println("Sensor Initialization Successful\n\r");
     }
     stateToConsider = undefined;
-    wtv020sd16p.reset();
 }
 
 void loop() {
   int pin_read = analogRead(buttonP);
-  if (pin_read >= 845 && pin_read <= 870 )
+  if (pin_read >= 845 && pin_read <= 870 && commandSeq[0] == 0 && commandSeq[1] == 0)
    {
    // Alternative modulo
    // langCase = (langCase + 1) % 4;
@@ -270,7 +304,6 @@ void loop() {
    Serial.print("Lang Change to: ");
    Serial.println(langCase);
    langToPlay = (4+(11*langCase));
-   wtv020sd16p.playVoice(langToPlay);
    Serial.println(langCase);
    blinkLED(ledP,2);
    delay(1000);
@@ -332,7 +365,6 @@ void loop() {
           {
           blinkLED(ledP,5);  
           langToPlay = (9+(11*langCase));
-          wtv020sd16p.playVoice(langToPlay);
           delay(1000);
           Serial.print("STARTING MEMORY");
           for(int i=0; i<cSsize;i++)
@@ -343,6 +375,7 @@ void loop() {
             Serial.println("currently running seq ");
             Serial.print(commandSeq[i]);
             runCommand(commandSeq[i]);
+            delay(250);
             }
 
           }
@@ -351,7 +384,6 @@ void loop() {
           {
           blinkLED(ledP,4);
           langToPlay = (10+(11*langCase));
-          wtv020sd16p.playVoice(langToPlay);
           Serial.print("RESETTING MEMORY");
           resetArray(commandSeq, cSsize);
           memoryPointer = 0;
@@ -363,19 +395,15 @@ void loop() {
             {
             case 1:
               langToPlay = (5+(11*langCase));
-              wtv020sd16p.playVoice(langToPlay);
               break;
             case 2:
               langToPlay = (6+(11*langCase));
-              wtv020sd16p.playVoice(langToPlay);
               break;
             case 3:
               langToPlay = (7+(11*langCase));
-              wtv020sd16p.playVoice(langToPlay);
               break;
             case 4:
               langToPlay = (8+(11*langCase));
-              wtv020sd16p.playVoice(langToPlay);
               break;
            default: //neutral - Color undefined
               break;
@@ -392,7 +420,7 @@ void loop() {
   }
   
   // Delay for sensor to stabilize
-  delay(1000);
+  delay(670);
   }
 digitalWrite(ledP, LOW);
 }
