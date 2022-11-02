@@ -58,12 +58,12 @@ WTV020SD16P wtv020sd16p(resetPin,clockPin,dataPin,busyPin);
 const int ledP = 13;
 // Declare sensor object
 SFE_ISL29125 RGB_sensor;
-unsigned int redlow = 675;
-unsigned int redhigh = 4230;
-unsigned int greenlow = 863;
-unsigned int greenhigh = 5123;
-unsigned int bluelow = 628;
-unsigned int bluehigh = 3389;
+unsigned int redlow = 52;
+unsigned int redhigh = 3200;
+unsigned int greenlow = 81;
+unsigned int greenhigh = 4716;
+unsigned int bluelow = 66;
+unsigned int bluehigh = 3511;
 // Declare RGB Values
 int redVal = 0;
 int greenVal = 0;
@@ -171,28 +171,28 @@ void runCommand(int CommandNum) // different to getCommand, used to run motor mo
 
 sColor spot_color(RGB scan_color)
  {
-  if (scan_color.R >= 240 && scan_color.G >= 240 && scan_color.B >= 240) {
+  if (scan_color.R >= 224 && scan_color.G >= 220 && scan_color.B >= 220) {
    return white;
   }
-  else if (scan_color.R <= 25 && scan_color.G <= 25 && scan_color.B <= 25) {
+  else if (scan_color.R <= 1 && scan_color.G <= 1 && scan_color.B <= 1) {
    return black;
   }
-    else if ((scan_color.R >= 170) && (scan_color.G >= 170) && (scan_color.B <= 140))
+    else if ((scan_color.R >= 185) && (scan_color.G >= 79) && (scan_color.B >= 39))
   {
     //wtv020sd16p.playVoice(XXXX);
     return yellow;
   }
-  else if ((scan_color.R >= 100) && (scan_color.G <= 80) && (scan_color.B <= 80))
+  else if ((scan_color.R >= 67) && (scan_color.G <= 11) && (scan_color.B <= 11))
   {
     //wtv020sd16p.playVoice(XXXX);
     return red;
   }
-    else if ((scan_color.R <= 80) && (scan_color.G <= 80) && (scan_color.B >= 80))
+    else if ((scan_color.R <= 6) && (scan_color.G <= 17) && (scan_color.B >= 29))
   {
    // wtv020sd16p.playVoice(XXXX);
     return blue;
   }
-    else if ((scan_color.R <= 50) && (scan_color.G >= 30) && (scan_color.B >= 31))
+    else if ((scan_color.R <= 3) && (scan_color.G >= 17) && (scan_color.B >= 15))
   {
     return green;
   }
@@ -265,7 +265,7 @@ void setup() {
 
 void loop() {
   int pin_read = analogRead(buttonP);
-  if (pin_read >= 845 && pin_read <= 870 && commandSeq[0] == 0 && commandSeq[1] == 0)
+  if (pin_read >= 851 && pin_read <= 853 && commandSeq[0] == 0 && commandSeq[1] == 0)
    {
    // Alternative modulo
    // langCase = (langCase + 1) % 4;
