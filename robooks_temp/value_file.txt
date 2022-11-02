@@ -1,11 +1,14 @@
-
-LOWS:
-Red: 675
-Green: 863
-Blue: 628
-
-HIGHS:
-Red: 4230
-Green: 5123
-Blue: 3389
-
+R G B
+red : 69 | 9 | 9
+blue : 4 | 15 | 31
+green : 2 | 18 | 16
+yellow : 189 | 80 | 41
+white :225 | 223 | 222
+black : 0 | 0 | 1 - 0 (0 lowest)
+WHITE - HIGH 
+RED GREEN BLUE
+3200 | 4716 | 3511
+BLACK - LOW
+RED GREEN BLUE
+52 | 81 | 66
+VOLTAGE BACK PIN: BETWEEN 851 && 853
