@@ -1,11 +1,8 @@
+#include <WTV020SD16P.h>
 #include <SFE_ISL29125.h>
 #include <Wire.h>
 #include <SparkFun_TB6612.h>
   
-
-unsigned long insertion; //time variable
-
-
 // LANG VARIABLE HERE
 const int langSet = 11;
 int langCase = 0;
@@ -53,6 +50,7 @@ int resetPin = A0;  // The pin number of the reset pin.
 int clockPin = A1;  // The pin number of the clock pin.
 int dataPin = A2;  // The pin number of the data pin.
 int busyPin = A3;  // The pin number of the busy pin.
+WTV020SD16P wtv020sd16p(resetPin,clockPin,dataPin,busyPin);
 
 
 
@@ -60,12 +58,12 @@ int busyPin = A3;  // The pin number of the busy pin.
 const int ledP = 13;
 // Declare sensor object
 SFE_ISL29125 RGB_sensor;
-unsigned int redlow = 675;
-unsigned int redhigh = 4230;
-unsigned int greenlow = 863;
-unsigned int greenhigh = 5123;
-unsigned int bluelow = 628;
-unsigned int bluehigh = 3389;
+unsigned int redlow = 52;
+unsigned int redhigh = 3200;
+unsigned int greenlow = 81;
+unsigned int greenhigh = 4716;
+unsigned int bluelow = 66;
+unsigned int bluehigh = 3511;
 // Declare RGB Values
 int redVal = 0;
 int greenVal = 0;
@@ -73,6 +71,17 @@ int blueVal = 0;
 
 //enum for color objects
 enum sColor { white,black,red, yellow, blue, green, undefined };
+
+
+// Rotary Encoder Inputs
+// Define pins 2, 3 if using two motors, configured for testing motor A
+ 
+ #define inputCLK_B 2 
+ #define inputDT_B 3
+ 
+ #define inputCLK_A 4 
+ #define inputDT_A 5 
+
 
 sColor stateToConsider;
 /*
@@ -122,103 +131,6 @@ int getCommand(sColor inputColor)
   }
 }
 
-void runCommand(int CommandNum) // different to getCommand, used to run motor movements
-{
-        switch (CommandNum)
-        {
-        case 1: // move forward
-              langToPlay = (1+(11*langCase));
-              Serial.println("Forward - RED");
-              insertion = millis();
-              SpeedControl(900,insertion,true);
-              brake(motor1, motor2);
-            break;
-        case 2: // turn left
-              langToPlay = (2+(11*langCase));
-              Serial.println("Left - GREEN");
-              forward(motor1, motor2, 100);
-              delay(1250);
-              brake(motor1, motor2);
-              delay(100);
-              left(motor1, motor2, 150);
-              delay(780);
-              brake(motor1, motor2);
-            break;
-        case 3: // move right
-              langToPlay = (3+(11*langCase));
-              Serial.println("Right - BLUE");
-              forward(motor1, motor2, 100);
-              delay(1250);
-              brake(motor1, motor2);
-              delay(100);
-              right(motor1, motor2, 150);
-              delay(780);
-              brake(motor1, motor2);
-            break;
-        case 4: // move back
-              langToPlay = (0+(11*langCase));
-              Serial.println("Back - YELLOW");
-              insertion = millis();
-              SpeedControl(900,insertion,false);
-              brake(motor1, motor2);
-            break;
-        default: //neutral - Color undefined
-            break;
-        }
-}
-
-sColor spot_color(RGB scan_color)
- {
-  if (scan_color.R >= 240 && scan_color.G >= 240 && scan_color.B >= 240) {
-   return white;
-  }
-  else if (scan_color.R <= 25 && scan_color.G <= 25 && scan_color.B <= 25) {
-   return black;
-  }
-    else if ((scan_color.R >= 170) && (scan_color.G >= 170) && (scan_color.B <= 140))
-  {
-    return yellow;
-  }
-  else if ((scan_color.R >= 100) && (scan_color.G <= 80) && (scan_color.B <= 80))
-  {
-    return red;
-  }
-    else if ((scan_color.R <= 80) && (scan_color.G <= 80) && (scan_color.B >= 80))
-  {
-    return blue;
-  }
-    else if ((scan_color.R <= 50) && (scan_color.G >= 30) && (scan_color.B >= 31))
-  {
-    return green;
-  }
-    else
-  {
-    return undefined;
-  }
- }
-void resetArray(int integerArray[] , int arraySize)
-{
-    for (int x = 0; x < arraySize; x++)
-    {
-        integerArray[x] = 0;
-    }
-}
-
-void blinkLED(int LedPin, int NumBlinks)
-{
-  int Blinks = 0;
-  while (Blinks < NumBlinks)
-  {
-    digitalWrite(LedPin, HIGH);   // turn the LED on (HIGH is the voltage level)
-    delay(250);                       // wait for a second
-    digitalWrite(LedPin, LOW);    // turn the LED off by making the voltage LOW
-    delay(250); 
-    Blinks++;
-  }
-  digitalWrite(LedPin, HIGH); 
-
-}
-/// InsertionTime is the time at which the function is called - call millis beforehand and start
 void SpeedControl(int duration, unsigned long InsertionTime, bool forwardMove )
 {
   int CurrSpeed = 70;
@@ -250,6 +162,112 @@ void SpeedControl(int duration, unsigned long InsertionTime, bool forwardMove )
       forward(motor1, motor2,CurrSpeed);
   }
   brake(motor1, motor2);
+}
+
+
+void runCommand(int CommandNum) // different to getCommand, used to run motor movements
+{
+        switch (CommandNum)
+        {
+        case 1: // move forward
+              langToPlay = (1+(11*langCase));
+              wtv020sd16p.playVoice(langToPlay);
+              Serial.println("Forward - RED");
+              forward(motor1, motor2, 100);
+              delay(1250);
+              brake(motor1, motor2);
+            break;
+        case 2: // turn left
+              langToPlay = (2+(11*langCase));
+              wtv020sd16p.playVoice(langToPlay);
+              Serial.println("Left - GREEN");
+              forward(motor1, motor2, 100);
+              delay(1250);
+              brake(motor1, motor2);
+              delay(100);
+              left(motor1, motor2, 150);
+              delay(780);
+              brake(motor1, motor2);
+            break;
+        case 3: // move right
+              langToPlay = (3+(11*langCase));
+              wtv020sd16p.playVoice(langToPlay);
+              Serial.println("Right - BLUE");
+              forward(motor1, motor2, 100);
+              delay(1250);
+              brake(motor1, motor2);
+              delay(100);
+              right(motor1, motor2, 150);
+              delay(780);
+              brake(motor1, motor2);
+            break;
+        case 4: // move back
+              langToPlay = (0+(11*langCase));
+              wtv020sd16p.playVoice(langToPlay);
+              Serial.println("Back - YELLOW");
+              back(motor1, motor2, 100);
+              delay(1250);
+              brake(motor1, motor2);
+            break;
+        default: //neutral - Color undefined
+            break;
+        }
+}
+
+sColor spot_color(RGB scan_color)
+ {
+  if (scan_color.R >= 224 && scan_color.G >= 220 && scan_color.B >= 220) {
+   return white;
+  }
+  else if (scan_color.R <= 1 && scan_color.G <= 1 && scan_color.B <= 1) {
+   return black;
+  }
+    else if ((scan_color.R >= 185) && (scan_color.G >= 79) && (scan_color.B >= 39))
+  {
+    //wtv020sd16p.playVoice(XXXX);
+    return yellow;
+  }
+  else if ((scan_color.R >= 67) && (scan_color.G <= 15) && (scan_color.B <= 13))
+  {
+    //wtv020sd16p.playVoice(XXXX);
+    return red;
+  }
+    else if ((scan_color.R <= 6) && (scan_color.G <= 20) && (scan_color.B >= 29))
+  {
+   // wtv020sd16p.playVoice(XXXX);
+    return blue;
+  }
+    else if ((scan_color.R <= 5) && (scan_color.G >= 17) && (scan_color.B >= 15))
+  {
+    return green;
+  }
+  //wtv020sd16p.playVoice(XXXX);
+    else
+  {
+    return undefined;
+  }
+ }
+void resetArray(int integerArray[] , int arraySize)
+{
+    for (int x = 0; x < arraySize; x++)
+    {
+        integerArray[x] = 0;
+    }
+}
+
+void blinkLED(int LedPin, int NumBlinks)
+{
+  int Blinks = 0;
+  while (Blinks < NumBlinks)
+  {
+    digitalWrite(LedPin, HIGH);   // turn the LED on (HIGH is the voltage level)
+    delay(250);                       // wait for a second
+    digitalWrite(LedPin, LOW);    // turn the LED off by making the voltage LOW
+    delay(250); 
+    Blinks++;
+  }
+  digitalWrite(LedPin, HIGH); 
+
 }
 
 bool checkArr(const int array[], int n) // CHECK IF ALL ELEMENTS IN ARRAY ARE EQUAL - USED IN LOGIC CHECK FOR COMMAND TO MEMORY PIPELINE
@@ -287,11 +305,12 @@ void setup() {
       Serial.println("Sensor Initialization Successful\n\r");
     }
     stateToConsider = undefined;
+    wtv020sd16p.reset();
 }
 
 void loop() {
   int pin_read = analogRead(buttonP);
-  if (pin_read >= 845 && pin_read <= 870 && commandSeq[0] == 0 && commandSeq[1] == 0)
+  if (pin_read >= 851 && pin_read <= 853 && commandSeq[0] == 0 && commandSeq[1] == 0)
    {
    // Alternative modulo
    // langCase = (langCase + 1) % 4;
@@ -304,6 +323,7 @@ void loop() {
    Serial.print("Lang Change to: ");
    Serial.println(langCase);
    langToPlay = (4+(11*langCase));
+   wtv020sd16p.playVoice(langToPlay);
    Serial.println(langCase);
    blinkLED(ledP,2);
    delay(1000);
@@ -365,6 +385,7 @@ void loop() {
           {
           blinkLED(ledP,5);  
           langToPlay = (9+(11*langCase));
+          wtv020sd16p.playVoice(langToPlay);
           delay(1000);
           Serial.print("STARTING MEMORY");
           for(int i=0; i<cSsize;i++)
@@ -384,6 +405,7 @@ void loop() {
           {
           blinkLED(ledP,4);
           langToPlay = (10+(11*langCase));
+          wtv020sd16p.playVoice(langToPlay);
           Serial.print("RESETTING MEMORY");
           resetArray(commandSeq, cSsize);
           memoryPointer = 0;
@@ -395,15 +417,19 @@ void loop() {
             {
             case 1:
               langToPlay = (5+(11*langCase));
+              wtv020sd16p.playVoice(langToPlay);
               break;
             case 2:
               langToPlay = (6+(11*langCase));
+              wtv020sd16p.playVoice(langToPlay);
               break;
             case 3:
               langToPlay = (7+(11*langCase));
+              wtv020sd16p.playVoice(langToPlay);
               break;
             case 4:
               langToPlay = (8+(11*langCase));
+              wtv020sd16p.playVoice(langToPlay);
               break;
            default: //neutral - Color undefined
               break;
