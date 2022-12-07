@@ -58,12 +58,12 @@ WTV020SD16P wtv020sd16p(resetPin,clockPin,dataPin,busyPin);
 const int ledP = 13;
 // Declare sensor object
 SFE_ISL29125 RGB_sensor;
-unsigned int redlow = 675;
-unsigned int redhigh = 4230;
-unsigned int greenlow = 863;
-unsigned int greenhigh = 5123;
-unsigned int bluelow = 628;
-unsigned int bluehigh = 3389;
+unsigned int redlow = 52;
+unsigned int redhigh = 3200;
+unsigned int greenlow = 81;
+unsigned int greenhigh = 4716;
+unsigned int bluelow = 66;
+unsigned int bluehigh = 3511;
 // Declare RGB Values
 int redVal = 0;
 int greenVal = 0;
@@ -71,6 +71,17 @@ int blueVal = 0;
 
 //enum for color objects
 enum sColor { white,black,red, yellow, blue, green, undefined };
+
+
+// Rotary Encoder Inputs
+// Define pins 2, 3 if using two motors, configured for testing motor A
+ 
+ #define inputCLK_B 2 
+ #define inputDT_B 3
+ 
+ #define inputCLK_A 4 
+ #define inputDT_A 5 
+
 
 sColor stateToConsider;
 /*
@@ -120,6 +131,40 @@ int getCommand(sColor inputColor)
   }
 }
 
+void SpeedControl(int duration, unsigned long InsertionTime, bool forwardMove )
+{
+  int CurrSpeed = 70;
+  int adder = 1;
+  int slower = -1;
+  int upperCeil = 170;
+  int lowerCeil = 70;
+  if (!forwardMove)
+  {
+    CurrSpeed = -70;
+    adder = -1;
+    slower = 1;
+    lowerCeil = -70;
+    upperCeil = -170;
+  }
+  unsigned long CatchTime = millis();
+  while ((CatchTime - InsertionTime) <= duration/2)
+    {
+      CurrSpeed = CurrSpeed + 1;
+      CurrSpeed = constrain(CurrSpeed, lowerCeil, upperCeil);
+      CatchTime = millis();
+      forward(motor1, motor2,CurrSpeed);
+    }
+  while ((CatchTime - InsertionTime) <= duration)
+  {
+      CurrSpeed = CurrSpeed - 1;
+      CurrSpeed = constrain(CurrSpeed, lowerCeil, upperCeil);
+      CatchTime = millis();
+      forward(motor1, motor2,CurrSpeed);
+  }
+  brake(motor1, motor2);
+}
+
+int fwRun = 980; //1250 - original 1.25 block move
 void runCommand(int CommandNum) // different to getCommand, used to run motor movements
 {
         switch (CommandNum)
@@ -129,23 +174,31 @@ void runCommand(int CommandNum) // different to getCommand, used to run motor mo
               wtv020sd16p.playVoice(langToPlay);
               Serial.println("Forward - RED");
               forward(motor1, motor2, 100);
-              delay(800);
+              delay(fwRun);
               brake(motor1, motor2);
             break;
         case 2: // turn left
               langToPlay = (2+(11*langCase));
               wtv020sd16p.playVoice(langToPlay);
               Serial.println("Left - GREEN");
+              forward(motor1, motor2, 100);
+              delay(fwRun);
+              brake(motor1, motor2);
+              delay(100);
               left(motor1, motor2, 150);
-              delay(1100);
+              delay(690);
               brake(motor1, motor2);
             break;
-        case 3: // move right
+        case 3: // turn right
               langToPlay = (3+(11*langCase));
               wtv020sd16p.playVoice(langToPlay);
               Serial.println("Right - BLUE");
+              forward(motor1, motor2, 100);
+              delay(fwRun);
+              brake(motor1, motor2);
+              delay(100);
               right(motor1, motor2, 150);
-              delay(1100);
+              delay(690); //og 780 - 15 to 25% slippage
               brake(motor1, motor2);
             break;
         case 4: // move back
@@ -153,7 +206,7 @@ void runCommand(int CommandNum) // different to getCommand, used to run motor mo
               wtv020sd16p.playVoice(langToPlay);
               Serial.println("Back - YELLOW");
               back(motor1, motor2, 100);
-              delay(800);
+              delay(fwRun);
               brake(motor1, motor2);
             break;
         default: //neutral - Color undefined
@@ -163,28 +216,28 @@ void runCommand(int CommandNum) // different to getCommand, used to run motor mo
 
 sColor spot_color(RGB scan_color)
  {
-  if (scan_color.R >= 240 && scan_color.G >= 240 && scan_color.B >= 240) {
+  if (scan_color.R >= 189 && scan_color.G >= 189 && scan_color.B >= 189) {
    return white;
   }
-  else if (scan_color.R <= 25 && scan_color.G <= 25 && scan_color.B <= 25) {
+  else if (scan_color.R <= 3 && scan_color.G <= 3 && scan_color.B <= 3) {
    return black;
   }
-    else if ((scan_color.R >= 170) && (scan_color.G >= 170) && (scan_color.B <= 140))
+    else if ((scan_color.R >= 185) && (scan_color.G >= 79) && (scan_color.B <= 58))
   {
     //wtv020sd16p.playVoice(XXXX);
     return yellow;
   }
-  else if ((scan_color.R >= 100) && (scan_color.G <= 80) && (scan_color.B <= 80))
+  else if ((scan_color.R >= scan_color.G + scan_color.B) || ((scan_color.R >= 78) && (scan_color.G <= 18) && (scan_color.B <= 18)))
   {
     //wtv020sd16p.playVoice(XXXX);
     return red;
   }
-    else if ((scan_color.R <= 80) && (scan_color.G <= 80) && (scan_color.B >= 80))
+    else if ((scan_color.B >= scan_color.R + scan_color.G) || ((scan_color.R <= 6) && (scan_color.G <= 20) && (scan_color.B >= 27)))
   {
    // wtv020sd16p.playVoice(XXXX);
     return blue;
   }
-    else if ((scan_color.R <= 50) && (scan_color.G >= 30) && (scan_color.B >= 31))
+    else if ((scan_color.G >= scan_color.R + scan_color.B) || ((scan_color.R <= 6) && (scan_color.G >= 17) && (scan_color.B >= 15)))
   {
     return green;
   }
@@ -257,7 +310,7 @@ void setup() {
 
 void loop() {
   int pin_read = analogRead(buttonP);
-  if (pin_read >= 845 && pin_read <= 870 )
+  if (pin_read >= 851 && pin_read <= 853 && commandSeq[0] == 0 && commandSeq[1] == 0)
    {
    // Alternative modulo
    // langCase = (langCase + 1) % 4;
@@ -343,6 +396,7 @@ void loop() {
             Serial.println("currently running seq ");
             Serial.print(commandSeq[i]);
             runCommand(commandSeq[i]);
+            delay(250);
             }
 
           }
@@ -392,7 +446,7 @@ void loop() {
   }
   
   // Delay for sensor to stabilize
-  delay(670);
+  delay(380); //base is 670 - set to 380 / 670 if 380 proves to be impractical | faulty 
   }
 digitalWrite(ledP, LOW);
 }
