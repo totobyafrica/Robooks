@@ -58,12 +58,12 @@ WTV020SD16P wtv020sd16p(resetPin,clockPin,dataPin,busyPin);
 const int ledP = 13;
 // Declare sensor object
 SFE_ISL29125 RGB_sensor;
-unsigned int redlow = 52;
-unsigned int redhigh = 3200;
-unsigned int greenlow = 81;
-unsigned int greenhigh = 4716;
-unsigned int bluelow = 66;
-unsigned int bluehigh = 3511;
+unsigned int redlow = 850;
+unsigned int redhigh = 1000;
+unsigned int greenlow = 370;
+unsigned int greenhigh = 920;
+unsigned int bluelow = 290;
+unsigned int bluehigh = 920;
 // Declare RGB Values
 int redVal = 0;
 int greenVal = 0;
@@ -216,28 +216,30 @@ void runCommand(int CommandNum) // different to getCommand, used to run motor mo
 
 sColor spot_color(RGB scan_color)
  {
-  if (scan_color.R >= 189 && scan_color.G >= 189 && scan_color.B >= 189) {
+  if ((scan_color.R >=  240) && (scan_color.G >= 240) && (scan_color.B >= 240) && (scan_color.R < 256) && (scan_color.G < 256) && (scan_color.B <= 256)) 
+  {
    return white;
   }
-  else if (scan_color.R <= 3 && scan_color.G <= 3 && scan_color.B <= 3) {
+  else if ((scan_color.R >=  0) && (scan_color.G >= 0) && (scan_color.B >= 0) && (scan_color.R <= 4) && (scan_color.G <= 4) && (scan_color.B <= 4)) 
+  {
    return black;
   }
-    else if ((scan_color.R >= 185) && (scan_color.G >= 79) && (scan_color.B <= 58))
+    else if ((scan_color.R >= 180 ) && (scan_color.G >= 180) && (scan_color.B >= 100) && (scan_color.R <= 255) && (scan_color.G <= 255) && (scan_color.B <= 240))
   {
     //wtv020sd16p.playVoice(XXXX);
     return yellow;
   }
-  else if ((scan_color.R >= 78) && (scan_color.G <= 18) && (scan_color.B <= 18))
+  else if ((scan_color.R >= 10 ) && (scan_color.G >= 0 ) && (scan_color.B >= 0 ) && (scan_color.R <= 255 ) && (scan_color.G <= 50 ) && (scan_color.B <= 50 ))
   {
     //wtv020sd16p.playVoice(XXXX);
     return red;
   }
-    else if ((scan_color.R <= 6) && (scan_color.G <= 20) && (scan_color.B >= 27))
+    else if ((scan_color.R >= 0 ) && (scan_color.G >= 10) && (scan_color.B >= 0) && (scan_color.R <= 4) && (scan_color.G <= 11) && (scan_color.B <= 255))
   {
    // wtv020sd16p.playVoice(XXXX);
     return blue;
   }
-    else if ((scan_color.R <= 6) && (scan_color.G >= 17) && (scan_color.B >= 15))
+    else if ((scan_color.R >= 0 ) && (scan_color.G >= 10 ) && (scan_color.B >= 0 ) && (scan_color.R <= 20 ) && (scan_color.G <= 255 ) && (scan_color.B <= 180 ))
   {
     return green;
   }
@@ -310,12 +312,19 @@ void setup() {
 
 void loop() {
   int pin_read = analogRead(buttonP);
-  if (pin_read >= 851 && pin_read <= 853 && commandSeq[0] == 0 && commandSeq[1] == 0)
+
+  if (pin_read >= 851 && pin_read <= 856 && commandSeq[0] == 0 && commandSeq[1] == 0)
    {
+  delay(50);
+  if (pin_read >= 851 && pin_read <= 856)
+  {
+  Serial.println("current lang case:");
+  Serial.println(langCase);
    // Alternative modulo
    // langCase = (langCase + 1) % 4;
    langCase++;
-   if (langCase > langCeil){
+   if (langCase > langCeil)
+   {
     langCase = 0;
    }
    Serial.print("Val: ");
@@ -327,6 +336,7 @@ void loop() {
    Serial.println(langCase);
    blinkLED(ledP,2);
    delay(1000);
+  }
   }
  else if (pin_read >= 350 ) // BUTTON VOLTAGE --> FOR REAL TEST USE 350
   //if (red > 20 || green > 20 || blue > 20)
@@ -442,11 +452,22 @@ void loop() {
         }
         resetArray(testArray, tAsize);
         x_pntr = 0;
+        delay(150);
     }
   }
-  
+  /*
+ * INT LOGIC
+ * 0 - NEUTRAL (UNDEFINED COLORS)
+ * 1 - FORWARD (RED)
+ * 2 - RIGHT (BLUE)
+ * 3 - LEFT (GREEN)
+ * 4 - BACK (YELLOW)
+ * 5 - RESET MEMORY (BLACK)
+ * 6 - WRITE TO MEMORY (WHITE)
+ * >= 8 -> return to NEUTRAL
+ */
   // Delay for sensor to stabilize
-  delay(380); //base is 670 - set to 380 / 670 if 380 proves to be impractical | faulty 
+  delay(200); //base is 670 - set to 380 / 670 if 380 proves to be impractical | faulty 
   }
 digitalWrite(ledP, LOW);
 }
